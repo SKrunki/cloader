@@ -310,7 +310,7 @@ s32 Apploader_Run(entry_point *entry)
 		if (CFG.ocarina) {
 			dogamehooks(dst,len);
 		}
-		if (CFG.VIDTV) {
+		if (CFG.vidtv) {
 			vidolpatcher(dst,len);
 		}
 		/*LANGUAGE PATCH - FISHEARS*/
