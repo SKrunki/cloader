@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 	Con_Clear();
 	if (CFG.verbosemode)
 	{
-		printf("cLoader v1.2 by Cluster\n\n");
+		printf("cLoader v1.2b by Cluster\n\n");
 		printf("* Hold B button to override default settings\n\n");
 	}
 
