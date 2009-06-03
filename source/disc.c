@@ -35,6 +35,9 @@ void __Disc_SetLowMem(void)
 	/* Copy disc ID */
 	memcpy((void *)0x80003180, (void *)0x80000000, 4);
 
+	// Error #002 fix
+	*(u32 *)0x80003140 = *(u32 *)0x80003188;
+
 	/* Flush cache */
 	DCFlushRange((void *)0x80000000, 0x3F00);
 }
