@@ -55,15 +55,12 @@ u32 do_sd_code(char *filename)
 	u32 ret;
 	char filepath[128];
 	
-	/*
-	// fat already initialized in main()
 	ret = fatInitDefault();
 	if (!ret) {
-		printf("[+] SD Error\n");
+		printf("[+] FAT init error\n");
 		sleep (2);
 		return 0;
 	}
-	*/
 
 	fflush(stdout);
 	
@@ -97,16 +94,15 @@ u32 do_sd_code(char *filename)
 		sleep(2);
 		return 0;
 	}
-   printf("* Ocarina: SD Codes found.\n");
+   if (CFG.verbosemode) printf("* Ocarina: SD Codes found.\n");
 
 	// ocarina config options are done elswhere, confirmation optional
 	memcpy((void*)0x800027E8,filebuff,filesize);
 	*(vu8*)0x80001807 = 0x01;
-	
 
 	free(filebuff);
 	fclose(fp);
-	sleep(2);
+//	sleep(2);
 	return 1;
 }
 
