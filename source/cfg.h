@@ -57,6 +57,8 @@ struct CFG
 	int language;
 	int ocarina;
 	int ios;
+    int country_patch;
+    int anti_002_fix; // wiiNinja added for cIOS222/223
 };
 
 extern struct CFG CFG;
