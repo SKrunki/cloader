@@ -29,12 +29,12 @@ s32 Partition_GetEntries(u32 device, partitionEntry *outbuf, u32 *outval)
 	switch (device) {
 	case WBFS_DEVICE_USB: {
 		/* Get sector size */
-		ret = USBStorage_GetCapacity(&sector_size);
+		ret = USBStorage2_GetCapacity(&sector_size);
 		if (ret < 0)
 			return ret;
 
 		/* Read partition table */
-		ret = USBStorage_ReadSectors(0, 1, &table);
+		ret = USBStorage2_ReadSectors(0, 1, &table);
 		if (ret < 0)
 			return ret;
 
