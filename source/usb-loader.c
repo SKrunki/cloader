@@ -92,7 +92,7 @@ void ConfigMenu (void)
 		printcursor(4, CurrentItem);
         printf("Language: %s               \n", languages[CFG.language]);
 
-        printcursor(5, CurrentItem);
+      printcursor(5, CurrentItem);
         printf("cIOS: %s               \n", cIOS[gIOSIndex]);
 
 		printcursor(6, CurrentItem);
@@ -227,7 +227,7 @@ int main(int argc, char **argv)
 	Con_Clear();
 	if (CFG.verbosemode)
 	{
-		printf("cLoader v1.3 by Cluster. Mod 1.4 by wiiNinja\n\n");
+		printf("cLoader v1.4 by Cluster & wiiNinja\n\n");
 		printf("* Hold B to override default settings\n\n");
 	}
 
@@ -380,6 +380,11 @@ int main(int argc, char **argv)
 	}
 
 	if (CFG.verbosemode) printf("* Booting Wii game, please wait...\n");
+	/* Disconnect Wiimote */
+   WPAD_Flush(0);
+   WPAD_Disconnect(0);
+   WPAD_Shutdown();
+
 	/* Boot Wii disc */
 	Disc_WiiBoot();
 
