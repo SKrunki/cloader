@@ -2,6 +2,8 @@
 #include <ogcsys.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h> // sleep
+#include <malloc.h>
 
 #include "apploader.h"
 #include "wdvd.h"
@@ -9,6 +11,9 @@
 #include "cfg.h"
 #include "patchcode.h" /*FISHEARS*/
 #include "kenobiwii.h" /*FISHEARS*/
+#include "dol.h"
+
+char gAltDolPath[] = "sd:/usb-loader";
 
 /*KENOBI! - FISHEARS*/
 extern const unsigned char kenobiwii[];
@@ -34,8 +39,8 @@ static u32 buffer[0x20] ATTRIBUTE_ALIGN(32);
 void maindolpatches(void *dst, int len);
 void PatchCountryStrings(void *Address, int Size);
 void Anti_002_fix(void *Address, int Size);
-//bool Load_Dol(void **buffer, int* dollen);
-//bool Remove_001_Protection(void *Address, int Size);
+bool Remove_001_Protection(void *Address, int Size);
+u32 Load_Dol_from_sd(void);
 
 static void __noprint(const char *fmt, ...)
 {
@@ -280,6 +285,30 @@ s32 Apploader_Run(entry_point *entry)
 	/* Set entry point from apploader */
 	*entry = appldr_final();
 
+    // Alternative dol (WiiPower)
+	if (CFG.alt_dol == 1)
+	{
+        u32 new_entry;
+        printf("[+] Alternative .dol:\n");
+        new_entry = Load_Dol_from_sd();
+        if (new_entry == 0)
+        {
+            // Non-fatal error, continue without alt.dol
+            printf("    Alternate dol not found. Continue without it...\n");
+        }
+        else if (new_entry == (u32)-1)
+        {
+            // fatal error
+            return -1;
+        }
+        else 
+        {
+            // ok.
+            *entry = (void*)new_entry;
+            printf("    Alternate dol loaded OK!\n");
+        }
+	}
+
 	return 0;
 } // Apploader_Run
 
@@ -349,57 +378,6 @@ void maindolpatches(void *dst, int len)
 	DCFlushRange(dst, len);
 } // maindolpatches
 
-/*
-// wiiNinja: left here just in case we want alt.dol
-bool Load_Dol(void **buffer, int* dollen)
-{
-	int ret;
-	FILE* file;
-	void* dol_buffer;
-	
-	char fname[200];
-	char gameidbuffer4[5];
-	memset(gameidbuffer4, 0, 5);
-	memcpy(gameidbuffer4, (char*)0x80000000, 4);		
-
-	snprintf(fname, sizeof(fname), "%s/%s.dol", USBLOADER_PATH, gameidbuffer4);
-	printf("    %s\n", fname);
-
-	file = fopen( fname, "rb");
-	
-	if(file == NULL) 
-	{
-		printf("    Not Found.\n");
-		sleep(1);
-		return false;
-	}
-	
-	int filesize;
-	fseek(file, 0, SEEK_END);
-	filesize = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	//dol_buffer = malloc(filesize);
-	dol_buffer = LARGE_memalign(filesize, 32);
-	if (dol_buffer == NULL)
-	{
-		printf("Out of memory\n");
-		return false;
-	}
-	ret = fread( dol_buffer, 1, filesize, file);
-	if(ret != filesize)
-	{
-		printf("Error reading .dol");
-		free(dol_buffer);
-		fclose(file);
-		return false;
-	}
-	fclose(file);
-
-	*buffer = dol_buffer;
-	*dollen = filesize;
-	return true;
-} // Load_Dol	
 
 bool Remove_001_Protection(void *Address, int Size)
 {
@@ -420,7 +398,7 @@ bool Remove_001_Protection(void *Address, int Size)
 	}
 	return false;
 } // Remove_001_Protection
-*/
+
 
 
 static u8  *diskid = (u8  *)0x80000000;
@@ -525,3 +503,105 @@ void Anti_002_fix(void *Address, int Size)
 	}
 } // Anti_002_fix
 
+u32 Load_Dol_from_sd(void)
+{
+	int ret;
+	FILE* file;
+	void *dol_header;	
+	u32 entrypoint;
+	
+	char fname[128];
+	char gameidbuffer4[5];
+	memset(gameidbuffer4, 0, 5);
+	memcpy(gameidbuffer4, (char*)0x80000000, 4);		
+	snprintf(fname, sizeof(fname), "%s/%s.dol", gAltDolPath, gameidbuffer4);
+	printf("    %s\n", fname);
+
+	file = fopen(fname, "rb");
+	
+	if(file == NULL) 
+	{
+		printf("    Not found.\n");
+		sleep(4);
+		return 0;
+	}
+	
+	int filesize;
+	fseek(file, 0, SEEK_END);
+	filesize = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	dol_header = memalign(32, sizeof(dolheader));
+	if (dol_header == NULL)
+	{
+		printf("Out of memory\n");
+		sleep(2);
+		fclose(file);
+		return 0;
+	}
+
+	ret = fread( dol_header, 1, sizeof(dolheader), file);
+	if(ret != sizeof(dolheader))
+	{
+		printf("Error reading dol header\n");
+		sleep(2);
+		free(dol_header);
+		fclose(file);
+		return 0;
+	}
+	
+	entrypoint = load_dol_start(dol_header);
+	
+	if (entrypoint == 0)
+	{
+		printf("Invalid .dol\n");
+		sleep(2);
+		free(dol_header);
+		fclose(file);
+		return 0;
+	}
+	
+	void *offset;
+	u32 pos;
+	u32 len;
+	int sec_idx = 0;
+	
+	printf("    ...");
+	while (load_dol_image(&offset, &pos, &len))
+	{
+		if(pos+len > filesize)
+		{
+			printf(".dol too small\n");
+			sleep(2);
+			free(dol_header);
+			fclose(file);
+			return -1;
+		}		
+		
+		if (len != 0)
+		{
+			//dbg_printf("\rdol [%d] @ 0x%08x [%6x] 0x%08x\n", sec_idx,
+			//			(int)offset, len, (int)offset + len);
+			fseek(file, pos, 0);
+			ret = fread( offset, 1, len, file);
+			if(ret != len)
+			{
+				printf("Error reading .dol\n");
+				sleep(2);
+				free(dol_header);
+				fclose(file);
+				return -1;
+			}
+			maindolpatches(offset, len);
+			Remove_001_Protection(offset, len);
+		}	
+		sec_idx++;
+		printf(".");
+	}
+	printf("\n");
+	
+	free(dol_header);
+	fclose(file);
+
+	return entrypoint;
+} // Load_Dol_from_sd	
