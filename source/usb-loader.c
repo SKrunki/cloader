@@ -270,7 +270,7 @@ int main(int argc, char **argv)
     }
     if (USBIOS != userConfigIOS)
     {
-        printf ("New cIOS selected. Old: %i, New: %i. Reloading...\n", USBIOS, userConfigIOS);
+        printf ("* New cIOS selected. Old: %i, New: %i. Reloading...\n", USBIOS, userConfigIOS);
 		//Wpad_WaitButtons();
 
         USBIOS = userConfigIOS;
