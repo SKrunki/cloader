@@ -294,7 +294,7 @@ int main(int argc, char **argv)
 	sleep(1);
 
     // Mount the SD card for Ocarina and Alt_Dol
-	if (CFG.ocarina && CFG.alt_dol)
+	if (CFG.ocarina || CFG.alt_dol)
 	{
 		if (CFG.verbosemode) printf("* Mounting SD card...\n");
 		ret = Fat_MountSDHC();
