@@ -275,15 +275,15 @@ s32 Apploader_Run(entry_point *entry)
 	*entry = appldr_final();
 
     // Alternative dol (WiiPower)
-	if (CFG.alt_dol == 1)
+	if (CFG.alt_dol)
 	{
         u32 new_entry;
-        if (CFG.verbosemode) printf("* Alternative .dol:\n");
+        if (CFG.verbosemode) printf("* Alternative .dol:");
         new_entry = Load_Dol_from_sd();
         if (new_entry == 0)
         {
             // Non-fatal error, continue without alt.dol
-            printf("[+] Alternate .dol not found. Continue without it...\n");
+            if (CFG.verbosemode) printf("[+] Alternate .dol not found. Continue without it...\n");
 				sleep(2);
         }
         else if (new_entry == (u32)-1)
@@ -298,7 +298,6 @@ s32 Apploader_Run(entry_point *entry)
             if (CFG.verbosemode) printf("* Alternate .dol loaded OK!\n");
         }
 	}
-
 	return 0;
 } // Apploader_Run
 
@@ -557,7 +556,7 @@ u32 Load_Dol_from_sd(void)
 	u32 len;
 	int sec_idx = 0;
 	
-	printf("    ...");
+//	printf("    ...");
 	while (load_dol_image(&offset, &pos, &len))
 	{
 		if(pos+len > filesize)
@@ -587,7 +586,7 @@ u32 Load_Dol_from_sd(void)
 			Remove_001_Protection(offset, len);
 		}	
 		sec_idx++;
-		printf(".");
+//		printf(".");
 	}
 	printf("\n");
 	
