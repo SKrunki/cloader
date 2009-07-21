@@ -293,14 +293,6 @@ int main(int argc, char **argv)
 
 	sleep(1);
 
-    // Mount the SD card for Ocarina and Alt_Dol
-	if (CFG.ocarina || CFG.alt_dol)
-	{
-		if (CFG.verbosemode) printf("* Mounting SD card...\n");
-		ret = Fat_MountSDHC();
-		if (ret < 0) printf("[+] ERROR: Can't mount SD card\n");
-	}
-
 	/* Initialize WBFS */
 	if (CFG.verbosemode) printf("* Initializing WBFS...\n");
 	ret = WBFS_Init(wbfsDev);
@@ -321,6 +313,15 @@ int main(int argc, char **argv)
 		}
 		printf("\n");
 		sleep(1);
+	}
+
+	// Need to mount SD after device waiting
+	// Mount the SD card for Ocarina and Alt_Dol
+	if (CFG.ocarina || CFG.alt_dol)
+	{
+		if (CFG.verbosemode) printf("* Mounting SD card...\n");
+		ret = Fat_MountSDHC();
+		if (ret < 0) printf("[+] ERROR: Can't mount SD card\n");
 	}
 
 	if (ret < 0) 

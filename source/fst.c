@@ -56,8 +56,7 @@ u32 do_sd_code(char *filename)
 	char filepath[128];
 	
 	snprintf(filepath, sizeof(filepath), "%s/%s.gct", FILEDIR, filename);
-
-	//printf("filename %s\n",filepath);
+	if (CFG.verbosemode) printf("* Ocarina: Loading %s\n",filepath);
 	
 	fp = fopen(filepath, "rb");
 	if (!fp) {
