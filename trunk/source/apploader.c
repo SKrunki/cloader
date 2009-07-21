@@ -28,19 +28,8 @@ typedef void  (*app_entry)(void (**init)(void (*report)(const char *fmt, ...)), 
 /* Apploader pointers */
 static u8 *appldr = (u8 *)0x81200000;
 
-
-/* Constants */
-#define APPLDR_OFFSET	0x2440
-
 /* Variables */
 static u32 buffer[0x20] ATTRIBUTE_ALIGN(32);
-
-// Prototypes
-void maindolpatches(void *dst, int len);
-void PatchCountryStrings(void *Address, int Size);
-void Anti_002_fix(void *Address, int Size);
-bool Remove_001_Protection(void *Address, int Size);
-u32 Load_Dol_from_sd(void);
 
 static void __noprint(const char *fmt, ...)
 {
@@ -289,12 +278,13 @@ s32 Apploader_Run(entry_point *entry)
 	if (CFG.alt_dol == 1)
 	{
         u32 new_entry;
-        printf("[+] Alternative .dol:\n");
+        if (CFG.verbosemode) printf("* Alternative .dol:\n");
         new_entry = Load_Dol_from_sd();
         if (new_entry == 0)
         {
             // Non-fatal error, continue without alt.dol
-            printf("    Alternate dol not found. Continue without it...\n");
+            printf("[+] Alternate .dol not found. Continue without it...\n");
+				sleep(2);
         }
         else if (new_entry == (u32)-1)
         {
@@ -305,7 +295,7 @@ s32 Apploader_Run(entry_point *entry)
         {
             // ok.
             *entry = (void*)new_entry;
-            printf("    Alternate dol loaded OK!\n");
+            if (CFG.verbosemode) printf("* Alternate .dol loaded OK!\n");
         }
 	}
 
@@ -515,14 +505,15 @@ u32 Load_Dol_from_sd(void)
 	memset(gameidbuffer4, 0, 5);
 	memcpy(gameidbuffer4, (char*)0x80000000, 4);		
 	snprintf(fname, sizeof(fname), "%s/%s.dol", gAltDolPath, gameidbuffer4);
-	printf("    %s\n", fname);
+	if (CFG.verbosemode) printf(" %s\n", fname);
 
 	file = fopen(fname, "rb");
 	
 	if(file == NULL) 
 	{
-		printf("    Not found.\n");
-		sleep(4);
+		// Why we need two same error messages?
+//		printf("    Not found.\n");
+//		sleep(4);
 		return 0;
 	}
 	
@@ -534,7 +525,7 @@ u32 Load_Dol_from_sd(void)
 	dol_header = memalign(32, sizeof(dolheader));
 	if (dol_header == NULL)
 	{
-		printf("Out of memory\n");
+		printf("[+] Out of memory!\n");
 		sleep(2);
 		fclose(file);
 		return 0;
@@ -543,7 +534,7 @@ u32 Load_Dol_from_sd(void)
 	ret = fread( dol_header, 1, sizeof(dolheader), file);
 	if(ret != sizeof(dolheader))
 	{
-		printf("Error reading dol header\n");
+		printf("[+] Error reading .dol header\n");
 		sleep(2);
 		free(dol_header);
 		fclose(file);
@@ -554,7 +545,7 @@ u32 Load_Dol_from_sd(void)
 	
 	if (entrypoint == 0)
 	{
-		printf("Invalid .dol\n");
+		printf("[+] Invalid .dol\n");
 		sleep(2);
 		free(dol_header);
 		fclose(file);
@@ -571,7 +562,7 @@ u32 Load_Dol_from_sd(void)
 	{
 		if(pos+len > filesize)
 		{
-			printf(".dol too small\n");
+			printf("[+] .dol too small\n");
 			sleep(2);
 			free(dol_header);
 			fclose(file);
@@ -586,7 +577,7 @@ u32 Load_Dol_from_sd(void)
 			ret = fread( offset, 1, len, file);
 			if(ret != len)
 			{
-				printf("Error reading .dol\n");
+				printf("[+] Error reading .dol\n");
 				sleep(2);
 				free(dol_header);
 				fclose(file);
