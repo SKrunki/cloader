@@ -55,15 +55,6 @@ u32 do_sd_code(char *filename)
 	u32 ret;
 	char filepath[128];
 	
-	ret = fatInitDefault();
-	if (!ret) {
-		printf("[+] FAT init error\n");
-		sleep (2);
-		return 0;
-	}
-
-	fflush(stdout);
-	
 	snprintf(filepath, sizeof(filepath), "%s/%s.gct", FILEDIR, filename);
 
 	//printf("filename %s\n",filepath);
