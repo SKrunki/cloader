@@ -3,17 +3,16 @@
 #include <ogcsys.h>
 #include <unistd.h>
 #include <string.h>
-#include <fat.h>
 #include <sdcard/wiisd_io.h>
 
 #include "disc.h"
+#include "fat.h"
 #include "restart.h"
 #include "sys.h"
 #include "video.h"
 #include "wbfs.h"
 #include "wpad.h"
 #include "cfg.h"
-#include "fat.h"
 #include "patchcode.h"
 #include "mload/mload.h"
 
@@ -117,7 +116,7 @@ void ConfigMenu (void)
 				case 3: CFG.ocarina = !CFG.ocarina; break;
 				case 4: CFG.language = (CFG.language+1) % 11; break;
 				case 5: gIOSIndex = (gIOSIndex+1) % 3; break;
-                case 6: CFG.anti_002_fix = !CFG.anti_002_fix; break;
+				case 6: CFG.anti_002_fix = !CFG.anti_002_fix; break;
 				case 7: CFG.country_patch = !CFG.country_patch; break;
 				case 8: CFG.alt_dol = !CFG.alt_dol; break;
 			}
@@ -132,7 +131,7 @@ void ConfigMenu (void)
 				case 3: CFG.ocarina = !CFG.ocarina; break;
 				case 4: CFG.language = CFG.language ? CFG.language-1 : 10; break;
 				case 5: gIOSIndex = gIOSIndex ? gIOSIndex-1 : 2; break;
-                case 6: CFG.anti_002_fix = !CFG.anti_002_fix; break;
+				case 6: CFG.anti_002_fix = !CFG.anti_002_fix; break;
 				case 7: CFG.country_patch = !CFG.country_patch; break;
 				case 8: CFG.alt_dol = !CFG.alt_dol; break;
 			}
@@ -294,10 +293,13 @@ int main(int argc, char **argv)
 
 	sleep(1);
 
-
-    // Mount the SD card for loading the Alt_Dol later
-	__io_wiisd.startup();
-	fatMountSimple("sd", &__io_wiisd);
+    // Mount the SD card for Ocarina and Alt_Dol
+	if (CFG.ocarina && CFG.alt_dol)
+	{
+		if (CFG.verbosemode) printf("* Mounting SD card...\n");
+		ret = Fat_MountSDHC();
+		if (ret < 0) printf("[+] ERROR: Can't mount SD card\n");
+	}
 
 	/* Initialize WBFS */
 	if (CFG.verbosemode) printf("* Initializing WBFS...\n");
@@ -395,10 +397,6 @@ int main(int argc, char **argv)
 	}
 
 	if (CFG.verbosemode) printf("* Booting Wii game, please wait...\n");
-	/* Disconnect Wiimote */
-   WPAD_Flush(0);
-   WPAD_Disconnect(0);
-   WPAD_Shutdown();
 
 	/* Boot Wii disc */
 	Disc_WiiBoot();

@@ -140,22 +140,3 @@ out:
 
 	return ret;
 }
-
-void Fat_print_sd_mode()
-{
-	printf("    SD Card FAT32 Mode: ");
-	switch (sd_mount_mode) {
-		case MOUNT_SD:
-			printf("Standard");
-			break;
-		case MOUNT_SDHC:
-			printf("SDHC");
-			break;
-		case MOUNT_NONE:
-		default:
-			printf("Not Mounted");
-			break;
-	}
-	printf("\n");
-}
-
