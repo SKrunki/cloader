@@ -23,7 +23,7 @@ void ConfigMenu(void);
 
 // Globals
 volatile u8 GameID[] = "CRAPPY";
-volatile u8 ConfigChars[] = "CFGUSB1000000000000";
+volatile u8 ConfigChars[] = "CFGUSB10000000000000";
 const char* Config = (char*)ConfigChars+6;
 s32 wbfsDev = WBFS_DEVICE_USB;
 u32 USBIOS = 249;
@@ -100,11 +100,13 @@ void ConfigMenu (void)
         printcursor(7, CurrentItem);
         printf("Country patch: %s               \n", CFG.country_patch ? "On" : "Off");
 
+        printcursor(8, CurrentItem);
+        printf("Alternate Dol: %s               \n", CFG.alt_dol ? "On" : "Off");
 
 		printf("\nUse arrows to change settings\nPress A to start game\n");
 		buttons = Wpad_WaitButtons();
-		if (buttons & WPAD_BUTTON_DOWN) CurrentItem = (CurrentItem+1) % 8;
-		if (buttons & WPAD_BUTTON_UP) CurrentItem = CurrentItem ? (CurrentItem-1) : 7;
+		if (buttons & WPAD_BUTTON_DOWN) CurrentItem = (CurrentItem+1) % 9;
+		if (buttons & WPAD_BUTTON_UP) CurrentItem = CurrentItem ? (CurrentItem-1) : 8;
 		if (buttons & WPAD_BUTTON_RIGHT)
 		{
 			switch (CurrentItem)
@@ -117,6 +119,7 @@ void ConfigMenu (void)
 				case 5: gIOSIndex = (gIOSIndex+1) % 3; break;
                 case 6: CFG.anti_002_fix = !CFG.anti_002_fix; break;
 				case 7: CFG.country_patch = !CFG.country_patch; break;
+				case 8: CFG.alt_dol = !CFG.alt_dol; break;
 			}
 		}
 		if (buttons & WPAD_BUTTON_LEFT)
@@ -131,10 +134,11 @@ void ConfigMenu (void)
 				case 5: gIOSIndex = gIOSIndex ? gIOSIndex-1 : 2; break;
                 case 6: CFG.anti_002_fix = !CFG.anti_002_fix; break;
 				case 7: CFG.country_patch = !CFG.country_patch; break;
+				case 8: CFG.alt_dol = !CFG.alt_dol; break;
 			}
 		}
 		if (buttons & WPAD_BUTTON_HOME) Restart();
-		if (!(buttons & WPAD_BUTTON_A)) printf("\x1b[11A");
+		if (!(buttons & WPAD_BUTTON_A)) printf("\x1b[12A");
 	} while (!(buttons & WPAD_BUTTON_A));
 	printf("\n");
 } // ConfigMenu
@@ -186,8 +190,9 @@ int main(int argc, char **argv)
     }
 	
     // wiiNinja: Added for the mload cIOS222/223
-	CFG.anti_002_fix = (Config[9] != '0' ? 1 : 0);  // Anti002 Fix
+	CFG.anti_002_fix = (Config[9] != '0' ? 1 : 0);   // Anti002 Fix
 	CFG.country_patch = (Config[10] != '0' ? 1 : 0); // CountryPatch
+	CFG.alt_dol = (Config[11] != '0' ? 1 : 0);       // alt_dol
 
     // -----------------------------------------------------------
     // Test code only: Fake GameID here for SSBB - This works
@@ -200,6 +205,7 @@ int main(int argc, char **argv)
 	CFG.ocarina = 1;
 	CFG.anti_002_fix = 1;
 	CFG.country_patch = 0;
+	CFG.alt_dol = 0;
     CFG.video = 2;      // force video to console
     */
 
@@ -208,6 +214,7 @@ int main(int argc, char **argv)
     usleep (300000);
     if ((USBIOS == 222) || (USBIOS == 223)) // wiiNinja
         load_ehc_module ();
+
 
 	/* Initialize subsystems */
 	Sys_Init();
@@ -227,7 +234,7 @@ int main(int argc, char **argv)
 	Con_Clear();
 	if (CFG.verbosemode)
 	{
-		printf("cLoader v1.4 by Cluster & wiiNinja\n\n");
+		printf("cLoader v1.4t1 by Cluster &/wiiNinja\n\n");
 		printf("* Hold B to override default settings\n\n");
 	}
 
@@ -242,6 +249,7 @@ int main(int argc, char **argv)
 	if (buttons & WPAD_BUTTON_1)
         CFG.verbosemode = 1;
 
+    // ======================================================
     // After ConfigMenu, check to see if user selected another cIOS
     // If a different cIOS is selected, reload the cIOS
     u32 userConfigIOS;
@@ -283,6 +291,13 @@ int main(int argc, char **argv)
 		Restart_Wait();
 		return 0;
 	}
+
+	sleep(1);
+
+
+    // Mount the SD card for loading the Alt_Dol later
+	__io_wiisd.startup();
+	fatMountSimple("sd", &__io_wiisd);
 
 	/* Initialize WBFS */
 	if (CFG.verbosemode) printf("* Initializing WBFS...\n");
