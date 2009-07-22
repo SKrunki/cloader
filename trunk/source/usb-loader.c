@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 	Con_Clear();
 	if (CFG.verbosemode)
 	{
-		printf("cLoader v1.4t1 by Cluster &/wiiNinja\n\n");
+		printf("cLoader v1.5 by Cluster &/wiiNinja\n\n");
 		printf("* Hold B to override default settings\n\n");
 	}
 
