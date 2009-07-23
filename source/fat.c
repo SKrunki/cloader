@@ -8,9 +8,6 @@
 #include <sdcard/wiisd_io.h>
 #include "wbfs.h"
 
-#define CACHE 8
-#define SECTORS 64
-
 /* Constants */
 //#define SDHC_MOUNT	"sdhc"
 #define SDHC_MOUNT	"sd"
@@ -90,56 +87,4 @@ s32 Fat_UnmountSDHC(void)
 		return -1;
 
 	return 0;
-}
-
-s32 Fat_ReadFile(const char *filepath, void **outbuf)
-{
-	FILE *fp     = NULL;
-	void *buffer = NULL;
-
-	struct stat filestat;
-	u32         filelen;
-
-	s32 ret;
-
-	/* Get filestats */
-	stat(filepath, &filestat);
-
-	/* Get filesize */
-	filelen = filestat.st_size;
-
-	/* Allocate memory */
-	buffer = memalign(32, filelen);
-	if (!buffer)
-		goto err;
-
-	/* Open file */
-	fp = fopen(filepath, "rb");
-	if (!fp)
-		goto err;
-
-	/* Read file */
-	ret = fread(buffer, 1, filelen, fp);
-	if (ret != filelen)
-		goto err;
-
-	/* Set pointer */
-	*outbuf = buffer;
-
-	goto out;
-
-err:
-	/* Free memory */
-	if (buffer)
-		free(buffer);
-
-	/* Error code */
-	ret = -1;
-
-out:
-	/* Close file */
-	if (fp)
-		fclose(fp);
-
-	return ret;
 }
