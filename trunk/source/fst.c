@@ -60,8 +60,11 @@ u32 do_sd_code(char *filename)
 	
 	fp = fopen(filepath, "rb");
 	if (!fp) {
-		if (CFG.verbosemode) printf("[+] Ocarina: No SD codes found\n");
-		sleep(2);
+		if (CFG.verbosemode)
+		{
+			printf("[+] Ocarina: No SD codes found\n");
+			sleep(2);
+		}
 		return 0;
 	}
 
