@@ -265,6 +265,11 @@ s32 Disc_BootPartition(u64 offset)
 	/* Close subsystems */
 	Subsystem_Close();
 
+	// Anti-green screen fix
+	VIDEO_SetBlack(TRUE);
+	VIDEO_Flush();
+	VIDEO_WaitVSync();
+
 	/* Shutdown IOS */
  	SYS_ResetSystem(SYS_SHUTDOWN, 0, 0);
 

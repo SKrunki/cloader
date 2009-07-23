@@ -8,6 +8,9 @@
 #include <sdcard/wiisd_io.h>
 #include "wbfs.h"
 
+#define CACHE 8
+#define SECTORS 64
+
 /* Constants */
 //#define SDHC_MOUNT	"sdhc"
 #define SDHC_MOUNT	"sd"
