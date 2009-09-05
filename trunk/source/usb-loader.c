@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 	Con_Clear();
 	if (CFG.verbosemode)
 	{
-		printf("cLoader v1.5d by Cluster/wiiNinja\n\n");
+		printf("cLoader v1.6 by Cluster/wiiNinja\n\n");
 		printf("* Hold B to override default settings\n\n");
 	}
 
@@ -292,6 +292,53 @@ int main(int argc, char **argv)
 	}
 
 	sleep(1);
+	/* Language selection */
+   switch(CFG.language)
+   {
+		case 0:
+      	configbytes[0] = 0xCD;
+	      break;
+
+      case 1:
+   	   configbytes[0] = 0x00;
+	      break;
+
+      case 2:
+	      configbytes[0] = 0x01;
+	      break;
+
+      case 3:
+			configbytes[0] = 0x02;
+			break;
+
+      case 4:
+      	configbytes[0] = 0x03;
+      	break;
+
+      case 5:
+      	configbytes[0] = 0x04;
+         break;
+
+      case 6:
+         configbytes[0] = 0x05;
+         break;
+
+      case 7:
+      	configbytes[0] = 0x06;
+         break;
+
+     	case 8:
+			configbytes[0] = 0x07;
+			break;
+
+		case 9:
+     		configbytes[0] = 0x08;
+         break;
+
+         case 10:
+         configbytes[0] = 0x09;
+         break;
+	}
 
 	/* Initialize WBFS */
 	if (CFG.verbosemode) printf("* Initializing WBFS...\n");
