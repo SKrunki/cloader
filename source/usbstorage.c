@@ -48,7 +48,8 @@ distribution.
 #define UMS_HEAPSIZE			0x10000
 
 /* Variables */
-static char fs[] ATTRIBUTE_ALIGN(32) = "/dev/usb/ehc";
+static char fs[] ATTRIBUTE_ALIGN(32) = "/dev/usb2";
+static char fs2[] ATTRIBUTE_ALIGN(32) = "/dev/usb/ehc";
  
 static s32 hid = -1, fd = -1;
 static u32 sector_size;
@@ -124,6 +125,8 @@ s32 USBStorage2_Init(void)
 
 	/* Open USB device */
 	fd = IOS_Open(fs, 0);
+	if (fd < 0) fd = IOS_Open(fs2, 0);
+	
 	if (fd < 0)
 		return fd;
 
